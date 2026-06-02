@@ -1,0 +1,35 @@
+# AITER attention forward, matching the configuration used in
+# HazyResearch's attn_fwd_baselines.py (the harness we ran in
+# Session 2). Expected result: ~355 TFLOPS, matching the
+# 2026-05-27_attn_fwd_first_run.md measurement.
+#
+# Validation: against pytorch_sdpa at the same shape. We expect
+# a small (BF16-noise-level) disagreement, similar to the AITER vs
+# PyTorch numbers from the HK harness (max_abs_error ~0.03,
+# rel_l2 ~0.006, cos ~0.999994, error_rate ~0.001%).
+#
+# Iteration counts are reduced from HK's defaults (500 warmup + 100
+# iters) to (50 warmup + 30 iters) so the run completes in a few
+# minutes per cell. 30 iters at ~25 ms each is ~750 ms
+# of measurement; with warmup and the one-time AITER JIT build (~81s
+# on first call this session), the total is ~2 minutes.
+
+implementation: aiter
+kernel: fa_forward
+
+shape:
+  batch: 16
+  num_heads: 16
+  num_kv_heads: 16
+  seq_len: 16384
+  head_dim: 64
+  causal: true
+
+dtype: bfloat16
+
+measurement:
+  num_warmup: 50
+  num_iters: 30
+  validate_against: pytorch_sdpa
+
+notes: "Calibration: matches HK attn_fwd_baselines.py shape, validates harness methodology against the Session 2 run"

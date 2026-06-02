@@ -1,0 +1,36 @@
+# TileLang attention forward at the HK calibration shape, FP16.
+#
+# IMPORTANT — dtype: TileLang's example_mha_fwd_bhsd.py kernel
+# hardcodes T.float16. This run is at FP16, while the AITER, Triton,
+# and SDPA calibration runs are at BF16. Comparison is approximate;
+# FP16 and BF16 typically perform within a few percent of each other
+# on MI300X, but it's a documented caveat. A BF16 TileLang variant
+# would require modifying the example.
+#
+# TileLang source: tile-ai/tilelang at /workspace/tilelang
+# Specific file: examples/flash_attention/example_mha_fwd_bhsd.py
+#
+# The kernel is compiled with block_M=128, block_N=128, num_stages=2,
+# threads=256 (TileLang's run_regression_perf defaults). Autotune is
+# not invoked because the example's get_configs() returns a single-
+# element list — the decorator is effectively a no-op.
+
+implementation: tilelang
+kernel: fa_forward
+
+shape:
+  batch: 16
+  num_heads: 16
+  num_kv_heads: 16
+  seq_len: 16384
+  head_dim: 64
+  causal: true
+
+dtype: float16
+
+measurement:
+  num_warmup: 50
+  num_iters: 30
+  validate_against: pytorch_sdpa
+
+notes: "Calibration: TileLang FA via example_mha_fwd_bhsd.py at FP16 (TileLang example hardcodes T.float16); SDPA reference will also run at FP16 for valid comparison"

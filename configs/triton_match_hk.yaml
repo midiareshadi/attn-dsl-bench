@@ -1,0 +1,36 @@
+# Triton attention forward at the HK calibration shape.
+#
+# Triton baseline source: HipKittens/analysis/baselines/attn/triton_baseline_v02.py
+# (AMD Triton team's FlashAttention v2 implementation).
+#
+# The Triton kernel uses bhsd (B, H, N, D) layout natively, so the
+# wrapper does no transposes. Inputs and validation align directly
+# against our PyTorch SDPA reference.
+#
+# Expected: TBD — this is the third data point in the calibration set.
+# We don't have a published HK reference number for Triton at this exact
+# shape, so this run establishes our own reference.
+#
+# Note: Triton autotunes on first invocation. The autotune cost is
+# absorbed by the warmup iterations (50), so the measured 30 iterations
+# reflect post-tune performance.
+
+implementation: triton
+kernel: fa_forward
+
+shape:
+  batch: 16
+  num_heads: 16
+  num_kv_heads: 16
+  seq_len: 16384
+  head_dim: 64
+  causal: true
+
+dtype: bfloat16
+
+measurement:
+  num_warmup: 50
+  num_iters: 30
+  validate_against: pytorch_sdpa
+
+notes: "Calibration: Triton FA via HK's triton_baseline_v02.py, same shape as AITER/SDPA calibration runs"

@@ -1,0 +1,38 @@
+# TileLang sweep v1: 5 sequence lengths x 2 head dimensions = 10 cells.
+# Shape sweep at B=16 H=16 H_KV=16 causal FP16.
+#
+# IMPORTANT — dtype is FP16: the TileLang example_mha_fwd_bhsd.py
+# kernel hardcodes T.float16. Direct comparison with the BF16 sweeps
+# (AITER, Triton, SDPA) is approximate; on MI300X these typically
+# perform within a few percent of each other for MFMA-bound kernels.
+#
+# TileLang's generic FA example underperforms on MI300X relative to
+# the other implementations (see calibration result: ~37 TFLOPS vs
+# Triton's 317 TFLOPS at the same shape). The sweep characterizes
+# how that gap scales with sequence length and head dimension.
+#
+# Compilation happens once per shape. With 10 shapes, expect roughly
+# 10 compile passes of ~5s each.
+
+implementation: tilelang
+kernel: fa_forward
+dtype: float16
+
+measurement:
+  num_warmup: 50
+  num_iters: 30
+  validate_against: pytorch_sdpa
+
+shapes:
+  - {batch: 16, num_heads: 16, num_kv_heads: 16, seq_len: 1024,  head_dim: 64,  causal: true}
+  - {batch: 16, num_heads: 16, num_kv_heads: 16, seq_len: 2048,  head_dim: 64,  causal: true}
+  - {batch: 16, num_heads: 16, num_kv_heads: 16, seq_len: 4096,  head_dim: 64,  causal: true}
+  - {batch: 16, num_heads: 16, num_kv_heads: 16, seq_len: 8192,  head_dim: 64,  causal: true}
+  - {batch: 16, num_heads: 16, num_kv_heads: 16, seq_len: 16384, head_dim: 64,  causal: true}
+  - {batch: 16, num_heads: 16, num_kv_heads: 16, seq_len: 1024,  head_dim: 128, causal: true}
+  - {batch: 16, num_heads: 16, num_kv_heads: 16, seq_len: 2048,  head_dim: 128, causal: true}
+  - {batch: 16, num_heads: 16, num_kv_heads: 16, seq_len: 4096,  head_dim: 128, causal: true}
+  - {batch: 16, num_heads: 16, num_kv_heads: 16, seq_len: 8192,  head_dim: 128, causal: true}
+  - {batch: 16, num_heads: 16, num_kv_heads: 16, seq_len: 16384, head_dim: 128, causal: true}
+
+notes: "Sweep v1: TileLang via example_mha_fwd_bhsd.py at FP16; characterizes the generic FA gap across shapes"

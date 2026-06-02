@@ -1,0 +1,31 @@
+# AITER sweep v1: 5 sequence lengths x 2 head dimensions = 10 cells.
+# Shape sweep at B=16 H=16 H_KV=16 causal BF16, validating against
+# pytorch_sdpa for each cell.
+#
+# Iteration counts kept the same as the calibration runs (50 warmup,
+# 30 iters) so results are directly comparable. AITER's ~81s JIT
+# build happens once per process at the first BF16 call; subsequent
+# shapes reuse the cached kernel.
+
+implementation: aiter
+kernel: fa_forward
+dtype: bfloat16
+
+measurement:
+  num_warmup: 50
+  num_iters: 30
+  validate_against: pytorch_sdpa
+
+shapes:
+  - {batch: 16, num_heads: 16, num_kv_heads: 16, seq_len: 1024,  head_dim: 64,  causal: true}
+  - {batch: 16, num_heads: 16, num_kv_heads: 16, seq_len: 2048,  head_dim: 64,  causal: true}
+  - {batch: 16, num_heads: 16, num_kv_heads: 16, seq_len: 4096,  head_dim: 64,  causal: true}
+  - {batch: 16, num_heads: 16, num_kv_heads: 16, seq_len: 8192,  head_dim: 64,  causal: true}
+  - {batch: 16, num_heads: 16, num_kv_heads: 16, seq_len: 16384, head_dim: 64,  causal: true}
+  - {batch: 16, num_heads: 16, num_kv_heads: 16, seq_len: 1024,  head_dim: 128, causal: true}
+  - {batch: 16, num_heads: 16, num_kv_heads: 16, seq_len: 2048,  head_dim: 128, causal: true}
+  - {batch: 16, num_heads: 16, num_kv_heads: 16, seq_len: 4096,  head_dim: 128, causal: true}
+  - {batch: 16, num_heads: 16, num_kv_heads: 16, seq_len: 8192,  head_dim: 128, causal: true}
+  - {batch: 16, num_heads: 16, num_kv_heads: 16, seq_len: 16384, head_dim: 128, causal: true}
+
+notes: "Sweep v1: AITER across 5 seq_lens x 2 head_dims at BF16"

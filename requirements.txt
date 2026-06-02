@@ -1,0 +1,32 @@
+# attn-dsl-bench requirements
+#
+# Pip-installable Python dependencies for the harness and analysis.
+# Hardware/runtime dependencies are listed below as comments — they
+# cannot be installed via pip on MI300X and must come from the ROCm
+# container or be built from source.
+
+# Config parsing (bench/runner.py reads YAML configs)
+pyyaml>=6.0
+
+# Data joining and figure generation (analysis/plot_sweep.py)
+pandas>=2.0.0
+matplotlib>=3.7.0
+
+# --- Runtime dependencies (NOT installed via pip) ---
+#
+# PyTorch (HIP/ROCm build) — install via the ROCm wheel index,
+#   e.g. for ROCm 7.x:
+#   pip install --index-url https://download.pytorch.org/whl/rocm6.x torch
+#   Tested: torch 2.10.0 (HIP build)
+#
+# Triton — pre-installed in AMD's ROCm Python containers.
+#   Tested: triton 3.4.0
+#
+# AITER — built from source on MI300X via AMD's setup scripts.
+#   See https://github.com/ROCm/aiter
+#   Tested: aiter 0.1.10
+#
+# TileLang — install path is fragile on MI300X (see notes/
+#   feasibility-report.md). The TileLang result in this benchmark is
+#   a single calibration data point, not a peer-comparable
+#   measurement. See https://github.com/tile-ai/tilelang

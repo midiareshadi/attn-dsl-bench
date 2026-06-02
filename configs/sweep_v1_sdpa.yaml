@@ -1,0 +1,33 @@
+# PyTorch SDPA sweep v1: 5 sequence lengths x 2 head dimensions = 10 cells.
+# Shape sweep at B=16 H=16 H_KV=16 causal BF16.
+#
+# Self-validation: each cell compares pytorch_sdpa output against
+# pytorch_sdpa output with the same seed. All error metrics should
+# be exactly 0 — this is also a sanity check that the harness loop
+# remains correct across the sweep.
+#
+# No JIT cost, no autotune. This is the fastest sweep of the four
+# and is also our reference column for AITER/Triton validation.
+
+implementation: pytorch_sdpa
+kernel: fa_forward
+dtype: bfloat16
+
+measurement:
+  num_warmup: 50
+  num_iters: 30
+  validate_against: pytorch_sdpa
+
+shapes:
+  - {batch: 16, num_heads: 16, num_kv_heads: 16, seq_len: 1024,  head_dim: 64,  causal: true}
+  - {batch: 16, num_heads: 16, num_kv_heads: 16, seq_len: 2048,  head_dim: 64,  causal: true}
+  - {batch: 16, num_heads: 16, num_kv_heads: 16, seq_len: 4096,  head_dim: 64,  causal: true}
+  - {batch: 16, num_heads: 16, num_kv_heads: 16, seq_len: 8192,  head_dim: 64,  causal: true}
+  - {batch: 16, num_heads: 16, num_kv_heads: 16, seq_len: 16384, head_dim: 64,  causal: true}
+  - {batch: 16, num_heads: 16, num_kv_heads: 16, seq_len: 1024,  head_dim: 128, causal: true}
+  - {batch: 16, num_heads: 16, num_kv_heads: 16, seq_len: 2048,  head_dim: 128, causal: true}
+  - {batch: 16, num_heads: 16, num_kv_heads: 16, seq_len: 4096,  head_dim: 128, causal: true}
+  - {batch: 16, num_heads: 16, num_kv_heads: 16, seq_len: 8192,  head_dim: 128, causal: true}
+  - {batch: 16, num_heads: 16, num_kv_heads: 16, seq_len: 16384, head_dim: 128, causal: true}
+
+notes: "Sweep v1: PyTorch SDPA across 5 seq_lens x 2 head_dims at BF16"

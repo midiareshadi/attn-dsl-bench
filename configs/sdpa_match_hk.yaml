@@ -1,0 +1,25 @@
+# PyTorch SDPA attention forward at the same shape as aiter_match_hk.yaml.
+# Expected: ~251 TFLOPS, matching the Session 2 measurement.
+#
+# Self-validation: SDPA against SDPA. All error metrics should be 0
+# (with the same seed, the same kernel produces bit-identical output).
+
+implementation: pytorch_sdpa
+kernel: fa_forward
+
+shape:
+  batch: 16
+  num_heads: 16
+  num_kv_heads: 16
+  seq_len: 16384
+  head_dim: 64
+  causal: true
+
+dtype: bfloat16
+
+measurement:
+  num_warmup: 50
+  num_iters: 30
+  validate_against: pytorch_sdpa
+
+notes: "Calibration: PyTorch SDPA paired data point for the AITER comparison"

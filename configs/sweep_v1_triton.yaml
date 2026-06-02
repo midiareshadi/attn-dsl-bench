@@ -1,0 +1,30 @@
+# Triton sweep v1: 5 sequence lengths x 2 head dimensions = 10 cells.
+# Shape sweep at B=16 H=16 H_KV=16 causal BF16.
+#
+# Triton autotunes on first invocation per shape. The autotune cost
+# is absorbed by the warmup iterations within each cell. Across the
+# sweep, each new (seq_len, head_dim) pair triggers its own autotune
+# pass, so the total wall time is higher than a single-cell run.
+
+implementation: triton
+kernel: fa_forward
+dtype: bfloat16
+
+measurement:
+  num_warmup: 50
+  num_iters: 30
+  validate_against: pytorch_sdpa
+
+shapes:
+  - {batch: 16, num_heads: 16, num_kv_heads: 16, seq_len: 1024,  head_dim: 64,  causal: true}
+  - {batch: 16, num_heads: 16, num_kv_heads: 16, seq_len: 2048,  head_dim: 64,  causal: true}
+  - {batch: 16, num_heads: 16, num_kv_heads: 16, seq_len: 4096,  head_dim: 64,  causal: true}
+  - {batch: 16, num_heads: 16, num_kv_heads: 16, seq_len: 8192,  head_dim: 64,  causal: true}
+  - {batch: 16, num_heads: 16, num_kv_heads: 16, seq_len: 16384, head_dim: 64,  causal: true}
+  - {batch: 16, num_heads: 16, num_kv_heads: 16, seq_len: 1024,  head_dim: 128, causal: true}
+  - {batch: 16, num_heads: 16, num_kv_heads: 16, seq_len: 2048,  head_dim: 128, causal: true}
+  - {batch: 16, num_heads: 16, num_kv_heads: 16, seq_len: 4096,  head_dim: 128, causal: true}
+  - {batch: 16, num_heads: 16, num_kv_heads: 16, seq_len: 8192,  head_dim: 128, causal: true}
+  - {batch: 16, num_heads: 16, num_kv_heads: 16, seq_len: 16384, head_dim: 128, causal: true}
+
+notes: "Sweep v1: Triton via HK's triton_baseline_v02.py across 5 seq_lens x 2 head_dims at BF16"
