@@ -16,7 +16,7 @@ From 30 timing measurements (3 implementations × 5 sequence lengths × 2 head d
 
 ![Throughput vs sequence length](results/figures/throughput_vs_seqlen.png)
 
-→ **Read the writeup:** [Blog post — forthcoming]
+→ **Read the writeup:** [Attention kernels on MI300X: a utilization story](https://midiareshadi.github.io/blog/attn-dsl-bench/)
 
 ---
 
